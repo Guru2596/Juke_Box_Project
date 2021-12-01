@@ -56,7 +56,7 @@ public class SimpleAudioPlayer {
                 System.out.println("2. resume");
                 System.out.println("3. restart");
                 System.out.println("4. stop");
-                //System.out.println("5. Jump to specific time");
+                //System.out.println("5. Main Menu");
                 int c = sc.nextInt();
                 audioPlayer.gotoChoice(c);
                 if (c == 4)

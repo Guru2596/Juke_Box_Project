@@ -23,10 +23,7 @@ public class PlayList {
 
     @Override
     public String toString() {
-        return "PlayList{" +
-                "users_Id='" + users_Id + '\'' +
-                ", Sno=" + Sno +
-                ", Name='" + Name + '\'' +
-                '}';
+        return users_Id+"\t\t"+Sno+"\t\t"+Name;
     }
+
 }

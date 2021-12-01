@@ -2,15 +2,12 @@ import javazoom.jl.decoder.JavaLayerException;
 
 import java.io.IOException;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.function.Predicate;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-public class User implements SongsInterface,Podcastsinterface {
+public class User implements SongsInterface,Podcastsinterface,PlayList_Interface,PlayListData_Interface {
     private static Connection connection;
     private static String users_Id;
     private String usersPassword;
@@ -19,6 +16,9 @@ public class User implements SongsInterface,Podcastsinterface {
     ArrayList<Podcasts> pserch = new ArrayList<>();
     private static boolean debug = false;
     ArrayList<Podcasts> podcasts = new ArrayList<>();
+    ArrayList<PlayList> playlist = new ArrayList<>();
+    Scanner sc = new Scanner(System.in);
+
 
     public User(String users_Id, String usersPassword) {
         this.users_Id = users_Id;
@@ -43,11 +43,9 @@ public class User implements SongsInterface,Podcastsinterface {
     public String getUsers_Id() {
         return users_Id;
     }
-
     public String getUsersPassword() {
         return usersPassword;
     }
-
     public boolean authenticateUser() {
         Boolean userValid = false;
         Scanner sc = new Scanner(System.in);
@@ -64,13 +62,29 @@ public class User implements SongsInterface,Podcastsinterface {
             while (result.next()) {
                 retrivedPasswd = result.getString("usersPassword");
             }
-            if (usersPassword.equals(retrivedPasswd)) userValid = true;
+            if (usersPassword.equals(retrivedPasswd)) {userValid = true;}
+            else{
+                System.out.println("Incorrect Password. Please try again!!");
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return userValid;
     }
-
+    public void New_User(){
+        System.out.println("Enter your Name");
+        String name = sc.next();
+        System.out.println("Enter Your New Password");
+        String password = sc.next();
+        try {
+            Statement stmt = getConnection().createStatement();
+            String Query = "insert into Users values ('"+name+"','"+password+"')";
+            boolean result = stmt.execute(Query);
+            System.out.println("Your Apple_Music Account is Succesfully Created\n");
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
     public void displaySongs() {
         try {
             Statement stmt = getConnection().createStatement();
@@ -84,28 +98,23 @@ public class User implements SongsInterface,Podcastsinterface {
             e.printStackTrace();
         }
     }
-
     public void displaiAllSongs() {
         song.stream().forEach(System.out::println);
     }
-
     public void serchSongByGener() {
         Scanner sc = new Scanner(System.in);
+        System.out.println("Serch Podcasts By Song_Name\\Artist\\Genre ");
         String Search=sc.next();
         try {
             Statement stmt = getConnection().createStatement();
             ResultSet result = stmt.executeQuery("select * from song where songName='"+Search+"'or artist='"+Search+"'or genre='"+Search+"'");
-            //select * from Songs where Song_Name='Happy_Life.wav'or Song_Artist='2'or Song_Genre='Rock';
             System.out.printf("%s %15s %15s %15s %15s","Song_ID","Song_Name","Song_Artist","Song_Genre","Song_Duration\n");
             while(result.next())
             {
-                //System.out.printf("%-3s %-20s %-20s %-10s %-10s\n",result.getString("songId"),result.getString("songName").substring(0,15),result.getString("artist"),result.getString("genre"),result.getString("duration"));
                 serch.add(new Songs(result.getInt("songId"), result.getString("songName").substring(0, 15), result.getString("artist"), result.getString("genre"), result.getString("duration")));
-
             }
             serch.stream().forEach(System.out::println);
             System.out.println("\nHere");
-
         }
         catch (SQLException e)
         {
@@ -114,7 +123,6 @@ public class User implements SongsInterface,Podcastsinterface {
 
 
     }
-
     public static void playSong() throws UnsupportedAudioFileException, IOException, LineUnavailableException, JavaLayerException, InterruptedException {
         System.out.print("Select Song..");
         Scanner sc = new Scanner(System.in);
@@ -134,29 +142,36 @@ public class User implements SongsInterface,Podcastsinterface {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-
-        System.out.println("Passing " + filePath);
         SimpleAudioPlayer.main(filePath);
         System.out.println("Came out of file");
-        ///displaySongs();
+        displaySongs1();
         optionsDisplaySongs();
 
     }
+    public static void displaySongs1() {
+        try {
+            Statement stmt = getConnection().createStatement();
+            ResultSet result = stmt.executeQuery("select * from song order by songId");
+            System.out.printf("%-3s %-20s %-20s %-10s %-10s\n","songId", "Name", "Artist", "Genre", "Duration");
+            while(result.next()) {
+                System.out.printf("%-3s %-20s %-20s %-10s %-10s\n",result.getString("songId"),result.getString("songName").substring(0,15),result.getString("artist"),result.getString("genre"),result.getString("duration"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
     public static void optionsDisplaySongs() throws UnsupportedAudioFileException, LineUnavailableException, IOException, InterruptedException, JavaLayerException {
-        System.out.println("1) Play Song\n2) Add to PlayList\n3) Main Menu");
+        System.out.println("1) Play Song\n2) Add to PlayList\n3) Main Menu\n4)Exit");
         //System.out.println("is stream available"+System.in.available());
         Scanner sc = new Scanner(System.in);
         int option = sc.nextInt();
         System.out.println("Selected Option " + option);
         switch(option) {
-            case 1: playSong();
-                break;
+            case 1: playSong();break;
             case 2:
-                break;
-            //case 3: optionsMain();
-              //  break;
-            default: System.out.println("Correct Option");optionsDisplaySongs();
+            case 3:
+            case 4:System.exit(0); break;
+            default: System.out.println("Correct Option");
         }
 
     }
@@ -206,19 +221,17 @@ public class User implements SongsInterface,Podcastsinterface {
 
     }
     public static void optionsDisplayPodcasts() throws UnsupportedAudioFileException, LineUnavailableException, IOException, InterruptedException, JavaLayerException {
-        System.out.println("1) Play Podcast\n2) Add to PlayList\n3) Main Menu");
+        System.out.println("1) Play Podcast\n2) Add to PlayList\n3) Main Menu\n4) Exit");
         //System.out.println("is stream available"+System.in.available());
         Scanner sc = new Scanner(System.in);
         int option = sc.nextInt();
         System.out.println("Selected Option " + option);
         switch(option) {
-            case 1: playPodcasts();
-                break;
-            case 2:
-                break;
-            //case 3: optionsMain();
-            //  break;
-            default: System.out.println("Correct Option");optionsDisplaySongs();
+            case 1: playPodcasts();break;
+            case 2: break;
+            case 3: break;
+            case 4: System.exit(0);break;
+            default: System.out.println("Correct Option");
         }
 
     }
@@ -233,7 +246,7 @@ public class User implements SongsInterface,Podcastsinterface {
             debug(query);
             ResultSet result = stmt.executeQuery(query);
             while(result.next()) {
-                if(result.getString("Name").equals(name)){ playListExists = true ; System.out.println("playList already exists");debug("playlist exists");}
+                if(result.getString("Name").equals(name)){ playListExists = true ; System.out.println("playList already exists");debug("playlist exists");Main.optionsMain();}
             }
             if(!playListExists) {
                 debug("Trying to insert playlist Name::::");
@@ -248,6 +261,7 @@ public class User implements SongsInterface,Podcastsinterface {
     }
     public void serchPodcastsBy_Host() {
         Scanner sc = new Scanner(System.in);
+        System.out.println("Serch Podcasts By Name\\Host\\Episodes ");
         String Search=sc.next();
         try {
             Statement stmt = getConnection().createStatement();
@@ -267,5 +281,178 @@ public class User implements SongsInterface,Podcastsinterface {
         {
             e.printStackTrace();
         }
+    }
+    public void Display_Playlists() {
+        try {
+            Statement stmt = getConnection().createStatement();
+            String query = "select * from playlist";
+            ResultSet r1 = stmt.executeQuery(query);
+            while (r1.next()) {
+                playlist.add(new PlayList(r1.getString("users_Id"), r1.getInt("Sno"), r1.getString("Name")));
+            }
+            playlist.stream().forEach(System.out::println);//Main.optionsMain();
+            //System.out.println("SUCCESSFULL");
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+    public static void optionsDisplayPlayList() throws UnsupportedAudioFileException, LineUnavailableException, IOException, InterruptedException, JavaLayerException {
+        System.out.println("1) Add to PlayList\n2) Main Menu\n3) Exit");
+        //System.out.println("is stream available"+System.in.available());
+        Scanner sc = new Scanner(System.in);
+        int option = sc.nextInt();
+        System.out.println("Selected Option " + option);
+        switch(option) {
+            case 1://add_To_PlayList();
+                break;
+            case 2:
+                break;
+            case 3:System.exit(0);break;
+            //case 3: optionsMain();
+            //  break;
+            default: System.out.println("Correct Option");optionsDisplaySongs();
+        }
+
+    }
+    public static void select_PlayList() {
+        System.out.println("Select Your PlayList");
+        Scanner sc = new Scanner(System.in);
+        int option = sc.nextInt();
+        //int PlayListName = 0;
+        String name = "";
+        try {
+            Statement stmt = getConnection().createStatement();
+            String query = "Select  Name from PlayList  where Sno = " + option + ";";
+            ResultSet result = stmt.executeQuery(query);
+            while (result.next()) {
+                //PlayListName = result.getInt("Sno");
+               name = result.getString("Name");
+            }
+            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/jukeboxProject", "root", "Iphone@259696");
+            //Statement pst =  getConnection().createStatement();
+            /*String query1 = "Insert into PlayListData(Sno,Name) values(?,?)";
+            PreparedStatement pst2 = connection.prepareStatement(query1);
+            //pst2.setInt(1,PlayListName);
+            pst2.setInt(1,option);
+            pst2.setString(2,name);
+
+            int no1 = pst2.executeUpdate();*/
+            System.out.println("Enter Song Option:");
+            int sid = sc.nextInt();
+            String sName = "";
+            Statement stmt1 = getConnection().createStatement();
+            String song = "Select songName from song where songId = "+sid+";";
+            ResultSet resultSet=stmt.executeQuery(song);
+            while (resultSet.next()){
+                sName=resultSet.getString("songName");
+            }
+            //insert into PlayListData(Sno,Name,Item_Name) values(?,?,?)
+            String query2 ="insert into PlayListData (Sno,Name,Item_Name)values(?,?,?)";
+            PreparedStatement pmt = connection.prepareStatement(query2);
+            pmt.setInt(1,option);
+            pmt.setString(2,name);
+            pmt.setString(3,sName);
+            int no2= pmt.executeUpdate();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+    public static void add_Podcasts_to_PlayList() {
+        System.out.println("Select Your PlayList");
+        Scanner sc = new Scanner(System.in);
+        int option = sc.nextInt();sc.nextLine();
+        String name = "";
+        try {
+            Statement stmt = getConnection().createStatement();
+            String query = "Select  Name from PlayList  where Sno = " + option + ";";
+            ResultSet result = stmt.executeQuery(query);
+            while (result.next()) {
+                //PlayListName = result.getInt("Sno");
+                name = result.getString("Name");
+            }
+            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/jukeboxProject", "root", "Iphone@259696");
+            //Statement pst =  getConnection().createStatement();
+            /*String query1 = "Insert into PlayListData(Sno,Name) values(?,?)";
+            PreparedStatement pst2 = connection.prepareStatement(query1);
+            //pst2.setInt(1,PlayListName);
+            pst2.setInt(1,option);
+            pst2.setString(2,name);
+
+            int no1 = pst2.executeUpdate();*/
+            System.out.println("Select Podcasts Option:");
+            int sid = sc.nextInt();
+            String sName = "";
+            Statement stmt1 = getConnection().createStatement();
+            String song = "Select Name from Podcast where PodcastId = "+sid+";";
+            ResultSet resultSet=stmt.executeQuery(song);
+            while (resultSet.next()){
+                sName=resultSet.getString("Name");
+            }
+            String query2 ="insert into PlayListData(Sno,Name,Item_Name) values(?,?,?) ";
+            PreparedStatement pmt = connection.prepareStatement(query2);
+            pmt.setInt(1,option);
+            pmt.setString(2,name);
+            pmt.setString(3,sName);
+            //pmt.setString(2,name);
+            int no2= pmt.executeUpdate();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+    public void viewPlayList() throws UnsupportedAudioFileException, LineUnavailableException, IOException, JavaLayerException, InterruptedException {
+        System.out.println("Select Your Option\n1) View PlayList\n2) Add Song to PlayList\n3) Add Podcasts to PlayList");
+        Scanner sc = new Scanner(System.in);
+        int choice = sc.nextInt();
+        switch (choice){
+            case 1:DisplayplayListdata();play();break;
+            case 2:Display_Playlists();select_PlayList();play();break;
+            case 3:Display_Playlists();add_Podcasts_to_PlayList();play();break;
+            case 4:System.exit(0); break;
+            default:System.out.println("Invalid choice");
+        }
+    }
+    public void DisplayplayListdata(){
+        ArrayList<PlayListData> data = new ArrayList<>();
+        System.out.println("Enter Your PlayList Name");
+        Scanner sc = new Scanner(System.in);
+        String Name = sc.next();
+        try {
+            Statement stmt = getConnection().createStatement();
+            String query = "Select SrP_Id,Sno,Name,Item_Name from PlayListdata where Name = '"+Name+"';";
+            ResultSet resultSet = stmt.executeQuery(query);
+            System.out.printf("%-20s %-30s %-30s %-10s\n", "SONG\\PODCASTS_ID", "Sno", "Play_List_Name", "Song\\Podcasts");
+            while (resultSet.next()){
+                data.add(new PlayListData(resultSet.getInt("SrP_Id"), resultSet.getInt("Sno"), resultSet.getString("Name"), resultSet.getString("Item_Name")));
+            }
+            data.stream().forEach(System.out::println);
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    public static void play() throws UnsupportedAudioFileException, IOException, LineUnavailableException, JavaLayerException, InterruptedException {
+        System.out.print("Select Song..");
+        Scanner sc = new Scanner(System.in);
+        int option = sc.nextInt();
+        String songName = "";
+        String filePath = "C:\\Users\\Guru\\Desktop\\NIIT\\Week_7 Project\\Song_and_Podcasts\\";
+        try {
+            Statement stmt = getConnection().createStatement();
+            String query = "select Item_Name from PlayListData where SrP_Id = '" + option + "';";
+            ResultSet result = stmt.executeQuery(query);
+            while (result.next()) {
+                songName = result.getString("Item_Name");
+            }
+            filePath = filePath + songName;
+            System.out.println("file Path:::" + filePath);
+            System.out.println("Passing " + filePath);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        SimpleAudioPlayer.main(filePath);
+        System.out.println("Came out of file");
+        optionsDisplaySongs();
+
     }
 }
