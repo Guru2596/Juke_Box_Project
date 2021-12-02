@@ -29,8 +29,9 @@ public class Main {
                         user.displaiAllSongs();
                         user.optionsDisplaySongs();
                         break;
-                    case 2:
-                        user.serchSongByGener();
+                    case 2:System.out.println("Serch Podcasts By Song_Name\\Artist\\Genre ");
+                        String Search=sc.next();
+                        user.serchSongByGener(Search);
                         user.optionsDisplaySongs();
                         break;
                     case 3:
@@ -38,8 +39,9 @@ public class Main {
                         user.displaiAllpodcasts();
                         user.optionsDisplayPodcasts();
                         break;
-                    case 4:
-                        user.serchPodcastsBy_Host();
+                    case 4:System.out.println("Serch Podcasts By Name\\Host\\Episodes ");
+                         Search=sc.next();
+                        user.serchPodcastsBy_Host(Search);
                         user.optionsDisplayPodcasts();
                         break;
                     case 5:

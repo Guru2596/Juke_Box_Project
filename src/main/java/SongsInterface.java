@@ -1,5 +1,7 @@
+import java.util.ArrayList;
+
 public interface SongsInterface {
-    public void displaySongs();
+    public ArrayList<Songs> displaySongs();
     //public void serchSongByGener(String genre);
     public void displaiAllpodcasts();
 }

@@ -1,5 +1,7 @@
+import java.util.ArrayList;
+
 public interface Podcastsinterface {
-    public void displayPodcasts();
+    public ArrayList<Podcasts> displayPodcasts();
     public void displaiAllpodcasts();
-    public void serchPodcastsBy_Host();
+    public ArrayList<Podcasts> serchPodcastsBy_Host(String Search);
 }

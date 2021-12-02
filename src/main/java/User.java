@@ -12,7 +12,7 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
     private static String users_Id;
     private String usersPassword;
     ArrayList<Songs> song = new ArrayList<>();
-    ArrayList<Songs> serch = new ArrayList<>();
+    //ArrayList<Songs> serch = new ArrayList<>();
     ArrayList<Podcasts> pserch = new ArrayList<>();
     private static boolean debug = false;
     ArrayList<Podcasts> podcasts = new ArrayList<>();
@@ -83,8 +83,9 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
             throwables.printStackTrace();
         }
     }
-    public void displaySongs() {
+    public ArrayList<Songs> displaySongs() {
         try {
+            //System.out.println("=====================================================================================================");
             Statement stmt = getConnection().createStatement();
             ResultSet result = stmt.executeQuery("select * from song order by songId");
             System.out.printf("%-10s %-20s %-20s %-10s %-10s\n", "songId", "Name", "Artist", "Genre", "Duration");
@@ -95,6 +96,7 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return song;
     }
     public void displaiAllSongs() {
         song.stream().forEach(System.out::println);
@@ -111,10 +113,9 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
             e.printStackTrace();
         }
     }
-    public void serchSongByGener() {
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Serch Podcasts By Song_Name\\Artist\\Genre ");
-        String Search=sc.next();
+    public ArrayList<Songs>  serchSongByGener(String Search) {
+        ArrayList<Songs> serch = new ArrayList<>();
+        //String Search=sc.next();
         try {
             Statement stmt = getConnection().createStatement();
             ResultSet result = stmt.executeQuery("select * from song where songName='"+Search+"'or artist='"+Search+"'or genre='"+Search+"'");
@@ -130,6 +131,7 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
         {
             e.printStackTrace();
         }
+        return serch;
     }
     public  void playSong() throws UnsupportedAudioFileException, IOException, LineUnavailableException, JavaLayerException, InterruptedException {
         System.out.print("Select Song..");
@@ -181,7 +183,7 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
         }
 
     }
-    public void displayPodcasts() {
+    public ArrayList<Podcasts> displayPodcasts() {
         try {
             Statement stmt = getConnection().createStatement();
             ResultSet result = stmt.executeQuery("select * from Podcast order by PodcastId");
@@ -193,7 +195,7 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
+        return podcasts;
     }
     public void displaiAllpodcasts() {
         podcasts.stream().forEach(System.out::println);
@@ -267,10 +269,9 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
 
         }
     }
-    public void serchPodcastsBy_Host() {
+    public ArrayList<Podcasts> serchPodcastsBy_Host(String Search) {
         Scanner sc = new Scanner(System.in);
-        System.out.println("Serch Podcasts By Name\\Host\\Episodes ");
-        String Search=sc.next();
+
         try {
             Statement stmt = getConnection().createStatement();
             ResultSet result = stmt.executeQuery("select * from Podcast where Name='"+Search+"'or Host='"+Search+"'or Episodes='"+Search+"'");
@@ -289,8 +290,9 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
         {
             e.printStackTrace();
         }
+        return pserch;
     }
-    public void Display_Playlists() {
+    public ArrayList<PlayList> Display_Playlists() {
         try {
             Statement stmt = getConnection().createStatement();
             String query = "select * from playlist";
@@ -299,10 +301,10 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
                 playlist.add(new PlayList(r1.getString("users_Id"), r1.getInt("Sno"), r1.getString("Name")));
             }
             playlist.stream().forEach(System.out::println);//Main.optionsMain();
-            //System.out.println("SUCCESSFULL");
         } catch (Exception e) {
             System.out.println(e);
         }
+        return playlist;
     }
     public  void optionsDisplayPlayList() throws UnsupportedAudioFileException, LineUnavailableException, IOException, InterruptedException, JavaLayerException {
         System.out.println("1) Add to PlayList\n2) Main Menu\n3) Exit");
@@ -457,8 +459,8 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
                 display_Songs();
                 optionsDisplaySongs();
                 break;
-            case 2:
-                serchSongByGener();
+            case 2:String Search=sc.next();
+                serchSongByGener(Search);
                 optionsDisplaySongs();
                 break;
             case 3:
@@ -467,8 +469,9 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
                 optionsDisplaySongs();
                 //optionsDisplayPodcasts();
                 break;
-            case 4:
-                serchPodcastsBy_Host();
+            case 4:System.out.println("Serch Podcasts By Name\\Host\\Episodes ");
+                Search=sc.next();
+                serchPodcastsBy_Host(Search);
                 optionsDisplayPodcasts();
                 break;
             case 5:
