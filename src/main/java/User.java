@@ -19,12 +19,10 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
     ArrayList<PlayList> playlist = new ArrayList<>();
     Scanner sc = new Scanner(System.in);
 
-
     public User(String users_Id, String usersPassword) {
         this.users_Id = users_Id;
         this.usersPassword = usersPassword;
     }
-
     public User() {
         try {
             connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/jukeboxProject", "root", "Iphone@259696");
@@ -101,6 +99,18 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
     public void displaiAllSongs() {
         song.stream().forEach(System.out::println);
     }
+    public void display_Songs() {
+        try {
+            Statement stmt = getConnection().createStatement();
+            ResultSet result = stmt.executeQuery("select * from song order by songId");
+            System.out.printf("%-10s %-20s %-20s %-10s %-10s\n", "songId", "Name", "Artist", "Genre", "Duration");
+            while (result.next()) {
+                System.out.printf("%-3s %-20s %-20s %-10s %-10s\n",result.getString("songId"),result.getString("songName").substring(0,15),result.getString("artist"),result.getString("genre"),result.getString("duration"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
     public void serchSongByGener() {
         Scanner sc = new Scanner(System.in);
         System.out.println("Serch Podcasts By Song_Name\\Artist\\Genre ");
@@ -120,10 +130,8 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
         {
             e.printStackTrace();
         }
-
-
     }
-    public static void playSong() throws UnsupportedAudioFileException, IOException, LineUnavailableException, JavaLayerException, InterruptedException {
+    public  void playSong() throws UnsupportedAudioFileException, IOException, LineUnavailableException, JavaLayerException, InterruptedException {
         System.out.print("Select Song..");
         Scanner sc = new Scanner(System.in);
         int option = sc.nextInt();
@@ -137,8 +145,6 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
                 songName = result.getString("songName");
             }
             filePath = filePath + songName;
-            System.out.println("file Path:::" + filePath);
-            System.out.println("Passing " + filePath);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -160,7 +166,7 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
             e.printStackTrace();
         }
     }
-    public static void optionsDisplaySongs() throws UnsupportedAudioFileException, LineUnavailableException, IOException, InterruptedException, JavaLayerException {
+    public  void optionsDisplaySongs() throws UnsupportedAudioFileException, LineUnavailableException, IOException, InterruptedException, JavaLayerException {
         System.out.println("1) Play Song\n2) Add to PlayList\n3) Main Menu\n4)Exit");
         //System.out.println("is stream available"+System.in.available());
         Scanner sc = new Scanner(System.in);
@@ -168,8 +174,8 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
         System.out.println("Selected Option " + option);
         switch(option) {
             case 1: playSong();break;
-            case 2:
-            case 3:
+            case 2:viewPlayList();break;
+            case 3:main_Menu();
             case 4:System.exit(0); break;
             default: System.out.println("Correct Option");
         }
@@ -197,7 +203,7 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
         System.out.printf("%-10s %-20s %-20s %-10s %-10s\n", "songId", "Name", "Artist", "Genre", "Duration");
         song.stream().filter(x -> x.getSongName().equalsIgnoreCase(genre)).sorted(Comparator.comparing(Songs::getSongName));
     }
-    public static void playPodcasts() throws UnsupportedAudioFileException, IOException, LineUnavailableException, JavaLayerException, InterruptedException {
+    public  void playPodcasts() throws UnsupportedAudioFileException, IOException, LineUnavailableException, JavaLayerException, InterruptedException {
         System.out.print("Select Podcast..");
         Scanner sc = new Scanner(System.in);
         int option = sc.nextInt();
@@ -220,7 +226,7 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
         optionsDisplayPodcasts();
 
     }
-    public static void optionsDisplayPodcasts() throws UnsupportedAudioFileException, LineUnavailableException, IOException, InterruptedException, JavaLayerException {
+    public  void optionsDisplayPodcasts() throws UnsupportedAudioFileException, LineUnavailableException, IOException, InterruptedException, JavaLayerException {
         System.out.println("1) Play Podcast\n2) Add to PlayList\n3) Main Menu\n4) Exit");
         //System.out.println("is stream available"+System.in.available());
         Scanner sc = new Scanner(System.in);
@@ -228,8 +234,8 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
         System.out.println("Selected Option " + option);
         switch(option) {
             case 1: playPodcasts();break;
-            case 2: break;
-            case 3: break;
+            case 2: viewPlayList();break;
+            case 3: main_Menu();break;
             case 4: System.exit(0);break;
             default: System.out.println("Correct Option");
         }
@@ -239,6 +245,7 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
         Scanner sc = new Scanner(System.in);
         System.out.println("Enter playList Name    :");
         String name = sc.next();
+        sc.nextLine();
         boolean playListExists = false;
         try{
             Statement stmt = getConnection().createStatement();
@@ -253,6 +260,7 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
                 query = "insert into PlayList (users_Id,Name) values('" + user + "','"+name+"')";
                 debug(query);
                 stmt.execute(query);
+                System.out.println("Your PlayList Created Successfully");
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -296,7 +304,7 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
             System.out.println(e);
         }
     }
-    public static void optionsDisplayPlayList() throws UnsupportedAudioFileException, LineUnavailableException, IOException, InterruptedException, JavaLayerException {
+    public  void optionsDisplayPlayList() throws UnsupportedAudioFileException, LineUnavailableException, IOException, InterruptedException, JavaLayerException {
         System.out.println("1) Add to PlayList\n2) Main Menu\n3) Exit");
         //System.out.println("is stream available"+System.in.available());
         Scanner sc = new Scanner(System.in);
@@ -329,14 +337,6 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
                name = result.getString("Name");
             }
             Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/jukeboxProject", "root", "Iphone@259696");
-            //Statement pst =  getConnection().createStatement();
-            /*String query1 = "Insert into PlayListData(Sno,Name) values(?,?)";
-            PreparedStatement pst2 = connection.prepareStatement(query1);
-            //pst2.setInt(1,PlayListName);
-            pst2.setInt(1,option);
-            pst2.setString(2,name);
-
-            int no1 = pst2.executeUpdate();*/
             System.out.println("Enter Song Option:");
             int sid = sc.nextInt();
             String sName = "";
@@ -353,6 +353,7 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
             pmt.setString(2,name);
             pmt.setString(3,sName);
             int no2= pmt.executeUpdate();
+            System.out.println("Your Song Is Successfully added to Playlist");
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -371,15 +372,7 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
                 name = result.getString("Name");
             }
             Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/jukeboxProject", "root", "Iphone@259696");
-            //Statement pst =  getConnection().createStatement();
-            /*String query1 = "Insert into PlayListData(Sno,Name) values(?,?)";
-            PreparedStatement pst2 = connection.prepareStatement(query1);
-            //pst2.setInt(1,PlayListName);
-            pst2.setInt(1,option);
-            pst2.setString(2,name);
-
-            int no1 = pst2.executeUpdate();*/
-            System.out.println("Select Podcasts Option:");
+            System.out.println("Select Podcasts PodcastId:");
             int sid = sc.nextInt();
             String sName = "";
             Statement stmt1 = getConnection().createStatement();
@@ -395,19 +388,21 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
             pmt.setString(3,sName);
             //pmt.setString(2,name);
             int no2= pmt.executeUpdate();
+            System.out.println("Your Podcasts Is Successfully added to Playlist");
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
     public void viewPlayList() throws UnsupportedAudioFileException, LineUnavailableException, IOException, JavaLayerException, InterruptedException {
-        System.out.println("Select Your Option\n1) View PlayList\n2) Add Song to PlayList\n3) Add Podcasts to PlayList");
+        System.out.println("Select Your Option\n1) View PlayList\n2) Add Song to PlayList\n3) Add Podcasts to PlayListn\n4) Main Menu\n5) Exit");
         Scanner sc = new Scanner(System.in);
         int choice = sc.nextInt();
         switch (choice){
-            case 1:DisplayplayListdata();play();break;
-            case 2:Display_Playlists();select_PlayList();play();break;
-            case 3:Display_Playlists();add_Podcasts_to_PlayList();play();break;
-            case 4:System.exit(0); break;
+            case 1:Display_Playlists();DisplayplayListdata();play();break;
+            case 2:Display_Playlists();select_PlayList();displaiAllSongs();play();break;
+            case 3:Display_Playlists();displaiAllpodcasts();add_Podcasts_to_PlayList();viewPlayList();play();break;
+            case 4:main_Menu();break;
+            case 5:System.exit(0); break;
             default:System.out.println("Invalid choice");
         }
     }
@@ -430,9 +425,9 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
             throwables.printStackTrace();
         }
     }
-
-    public static void play() throws UnsupportedAudioFileException, IOException, LineUnavailableException, JavaLayerException, InterruptedException {
-        System.out.print("Select Song..");
+    public  void play() throws UnsupportedAudioFileException, IOException, LineUnavailableException, JavaLayerException, InterruptedException {
+        System.out.println("Select Your SrP_Id to Play..?");
+        //System.out.print("Select Song..");
         Scanner sc = new Scanner(System.in);
         int option = sc.nextInt();
         String songName = "";
@@ -445,14 +440,58 @@ public class User implements SongsInterface,Podcastsinterface,PlayList_Interface
                 songName = result.getString("Item_Name");
             }
             filePath = filePath + songName;
-            System.out.println("file Path:::" + filePath);
-            System.out.println("Passing " + filePath);
         } catch (SQLException e) {
             e.printStackTrace();
         }
         SimpleAudioPlayer.main(filePath);
         System.out.println("Came out of file");
-        optionsDisplaySongs();
+        viewPlayList();
 
+    }
+    public void main_Menu() throws UnsupportedAudioFileException, LineUnavailableException, IOException, InterruptedException, JavaLayerException {
+        System.out.println("1) Display Songs\n2)Serch Songs By Genre\n3) DisplayPodcasts\n4) Srech Podcasts\n5) CreatePlayList\n6) Add to PlayList\n7) DisplayPlayList");
+        Scanner sc = new Scanner(System.in);
+        int option = sc.nextInt();
+        switch (option) {
+            case 1:
+                display_Songs();
+                optionsDisplaySongs();
+                break;
+            case 2:
+                serchSongByGener();
+                optionsDisplaySongs();
+                break;
+            case 3:
+                displayPodcasts();
+                displaiAllpodcasts();
+                optionsDisplaySongs();
+                //optionsDisplayPodcasts();
+                break;
+            case 4:
+                serchPodcastsBy_Host();
+                optionsDisplayPodcasts();
+                break;
+            case 5:
+                System.out.println("Enter User Name:");
+                String UserName = sc.next();
+                createPlayList(UserName);
+                Display_Playlists();viewPlayList();
+                break;
+            case 6:
+                viewPlayList();
+                Display_Playlists();
+                displaiAllpodcasts();
+                add_Podcasts_to_PlayList();
+                break;
+            case 7:
+                viewPlayList();
+                Display_Playlists();
+                select_PlayList();
+                optionsDisplayPlayList();
+                break;
+            case 8:System.exit(0);break;
+            default:
+                System.out.println("select correct option");
+        }
     }
 }

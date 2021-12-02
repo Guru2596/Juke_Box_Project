@@ -46,10 +46,12 @@ public class Main {
                         System.out.println("Enter User Name:");
                         String UserName = sc.next();
                         user.createPlayList(UserName);
+                        user.Display_Playlists();user.viewPlayList();
                         break;
                     case 6:
                         user.viewPlayList();
                         user.Display_Playlists();
+                        user.displaiAllpodcasts();
                         user.add_Podcasts_to_PlayList();
                         break;
                     case 7:
@@ -65,8 +67,6 @@ public class Main {
             }
         }
 
-        //else if
-        //System.out.println("isUserValid" + isUserValid);
     }
     public static int optionsMain() {
         Scanner sc = new Scanner(System.in);
